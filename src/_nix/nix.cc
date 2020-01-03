@@ -1,3 +1,5 @@
+#include <string>
+
 #include <config.h>
 #include <derivations.hh>
 #include <globals.hh>
@@ -6,6 +8,13 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
+
+nix::Hash hashDerivation(nix::Derivation derivation) {
+  nix::initPlugins();
+  auto store = nix::openStore();
+  auto hash = nix::hashDerivationModulo(*store, derivation);
+  return hash;
+}
 
 
 PYBIND11_MODULE(_nix, m) {
@@ -21,9 +30,12 @@ PYBIND11_MODULE(_nix, m) {
 
     m.def("readDerivation", py::overload_cast<const nix::Path &>(&nix::readDerivation));
 
+    m.def("hashDerivation", &hashDerivation);
+
     py::class_<nix::Derivation>(m, "Derivation")
       .def_readwrite("outputs", &nix::Derivation::outputs)
       .def_readwrite("inputSrcs", &nix::Derivation::inputSrcs)
+      .def_readwrite("inputDrvs", &nix::Derivation::inputDrvs)
       .def_readwrite("platform", &nix::Derivation::platform)
       .def_readwrite("builder", &nix::Derivation::builder)
       .def_readwrite("args", &nix::Derivation::args)
@@ -40,6 +52,16 @@ PYBIND11_MODULE(_nix, m) {
     m.def("isDerivation", &nix::isDerivation, R"pbdoc(
        Determine whether filename is a derivation
     )pbdoc");
+
+    py::class_<nix::Hash>(m, "Hash")
+      .def("to_string", &nix::Hash::to_string);
+
+    py::enum_<nix::Base>(m, "Base")
+      .value("Base64", nix::Base::Base64)
+      .value("Base32", nix::Base::Base32)
+      .value("Base16", nix::Base::Base16)
+      .value("SRI", nix::Base::SRI)
+      .export_values();
 
 #ifdef VERSION_INFO
     m.attr("__version__") = VERSION_INFO;
