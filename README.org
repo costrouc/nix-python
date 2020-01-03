@@ -1,0 +1,472 @@
+#+TITLE: Visualizing Nixpkgs
+
+* Nixpkgs API
+
+#+NAME: list-projects
+#+begin_src python
+  from hydra import Hydra, print_project
+
+  hydra = Hydra()
+  print([p['name'] for p in hydra.projects()])
+#+end_src
+
+#+RESULTS: list-projects
+: ['acoda', 'cabal2nix', 'coccinelle', 'composer2nix', 'crawljax', 'disnix', 'dwarffs', 'flakes', 'gnu', 'groove', 'hydra', 'kde', 'libchop', 'linux-on-mac-builder', 'ltsmin', 'meta-environment', 'mobl', 'mturk', 'nix', 'nix-androidenvtests', 'nixops', 'nixos', 'nix-pills', 'nixpkgs', 'node2nix', 'node-hydra-connector', 'ofborg', 'patchelf', 'pil', 'psat', 'spoofax', 'strategoxt', 'strategoxt-docs', 'strategoxt-java', 'tribler', 'uuagc', 'uulib', 'webdsl']
+
+#+NAME: get-project
+#+begin_src python :var project="nixpkgs"
+  from hydra import Hydra
+
+  hydra = Hydra()
+  data = hydra.project(project)
+  print(data['jobsets'])
+#+end_src
+
+#+RESULTS: get-project
+: ['ericson2314-old-cross-known-good', 'pr-26799', 'perl-5.20', 'cross-trunk', 'ericson2314-haskell-updates', 'ericson2314-cross-staging', 'stdenv', 'pr-4857', 'gtk-doc', 'graham-i686', 'closure-size', 'parallel-building-merger', 'staging-18.09', 'gcc-5', 'bash-no-undef-vars', 'cross-stdenv', 'cpan-update', 'pr-4943', 'pr-4085', 'staging-18.03', 'nixpkgs-18.03-darwin', 'ericson2314-staging', 'multiple-outputs', 'stdenv-fixes', 'systemd', 'pr-32629', 'pr-27209', 'glibc-2-27', 'prs-6254-and-6166', 'pr-5091', 'python-rework', 'staging-19.09', 'cross-staging', 'cve-2010-3856', 'gcc-9', 'pr-2131', 'r-updates', 'pr-63493-meson-auto-features', 'trunk', 'python3', 'pr-32112', 'modular-python', 'binutils-2-30', 'haskell-updates-18.09', 'structured-attrs', 'release-17.03', 'syscall-tracing', 'nixpkgs-17.09-darwin', 'haskell-updates', 'pr-12701', 'pr-7465', 'gnome', 'staging', 'pr-1633', 'darwin-updates', 'python-unstable', 'openssl-1.1', 'pr-1515', 'openssl-1.1.x-update', 'kde47', 'vcunat-stdenv', 'libpng15', 'glib-230', 'nixpkgs-19.09-darwin', 'lnl7-wip', 'darwin-next', 'guile2test', 'nixpkgs-18.09-darwin', 'staging-19.03', 'staging-next', 'gcc8', 'xorg-test', 'pr-10399', 'pr-19990', 'nixpkgs-19.03-darwin', 'copumpkin-wip']
+
+#+NAME: get-jobset
+#+begin_src python :var project="nixpkgs" :var jobset="staging-next"
+  from hydra import Hydra
+
+  hydra = Hydra()
+  data = hydra.jobset(project, jobset)
+  # dont print data it is huge
+#+end_src
+
+#+RESULTS: get-jobset
+
+#+NAME: get-evaluation
+#+begin_src python :var project="nixpkgs" :var jobset="staging-next"
+  from hydra import Hydra
+  import json
+
+  hydra = Hydra()
+  data = hydra.evaluations(project, jobset)
+  print('evaluation ids', [_['id'] for _ in data['evals']])
+  print('num builds', [len(_['builds']) for _ in data['evals']])
+  print(data['evals'][0]['builds'][0])
+#+end_src
+
+#+RESULTS: get-evaluation
+: evaluation ids [1562685, 1562600, 1562575, 1562546, 1562502, 1562365, 1562357, 1562022, 1561935, 1560884, 1560879, 1560591, 1560521, 1560236, 1560219, 1560201, 1560143, 1559869, 1559653, 1559401]
+: num builds [82288, 82275, 82168, 82395, 82455, 82409, 82290, 82290, 82290, 82203, 82197, 82175, 82154, 82100, 82099, 82073, 82073, 81999, 82011, 82011]
+: 109222720
+
+#+NAME: get-build
+#+begin_src python :var build="109213517"
+  from hydra import Hydra
+  import json
+
+  hydra = Hydra()
+  data = hydra.build(build)
+  print(data)
+#+end_src
+
+#+RESULTS: get-build
+: {'nixname': 'python3.7-pyOpenSSL-19.1.0', 'drvpath': '/nix/store/qxsqrynrlf00vxgcsqsyhlilnm7jypbx-python3.7-pyOpenSSL-19.1.0.drv', 'releasename': None, 'jobsetevals': [1562685, 1562600], 'timestamp': 1577800574, 'system': 'aarch64-linux', 'buildstatus': 1, 'priority': 100, 'finished': 1, 'project': 'nixpkgs', 'buildoutputs': {'out': {'path': '/nix/store/3259xzn5yjcaqqpg7pdvd33090cadqxq-python3.7-pyOpenSSL-19.1.0'}, 'dev': {'path': '/nix/store/5hm667nsgi4rhsmxwc4hi1ysfq258prp-python3.7-pyOpenSSL-19.1.0-dev'}}, 'jobset': 'staging-next', 'buildproducts': {}, 'job': 'python37Packages.pyopenssl.aarch64-linux', 'stoptime': 1577855348, 'id': 109213517, 'starttime': 1577855337, 'buildmetrics': {}}
+
+#+NAME: get-build-log
+#+begin_src python :var build="109213517"
+  from hydra import Hydra
+  import json
+
+  hydra = Hydra()
+  data = hydra.build_log(build)
+#+end_src
+
+#+RESULTS: get-build-log
+
+* Nixpkgs working
+
+#+begin_src python :var project="nixpkgs" :var jobset="staging-next"
+  from hydra import Hydra, fetch_nixpkgs, get_derivation
+
+  hydra = Hydra()
+  data = hydra.evaluations(project, jobset)
+  first_eval = data['evals'][1]
+
+  print(fetch_nixpkgs(first_eval))
+  print(get_derivation('/tmp/hydra/nixpkgs-0c2adc0fb1b0b551bef119477f37b86190cd9cc5', 'python3Packages.numpy'))
+#+end_src
+
+#+RESULTS:
+: /tmp/hydra/nixpkgs-0c2adc0fb1b0b551bef119477f37b86190cd9cc5
+: {'/nix/store/9y0yj3fp2hjwh1z16w86pvwiqkrw4x2f-python3.7-numpy-1.17.4.drv': {'outputs': {'out': {'path': '/nix/store/lzchyci4b2ng910i6jmkjsk84rq62w87-python3.7-numpy-1.17.4'}}, 'inputSrcs': ['/nix/store/9krlzvny65gdc8s7kpb6lkx8cd02c25b-default-builder.sh'], 'inputDrvs': {'/nix/store/1c29nld2l43hh4fxz8s0nrr0g1rfbpjv-python3.7-setuptools-42.0.2.drv': ['out'], '/nix/store/27x5jll53nz9rppshlxgj6w8a1298gvz-pip-install-hook.drv': ['out'], '/nix/store/4qvq46bxyc4igq7pscw19l4i83l5043j-unzip-6.0.drv': ['out'], '/nix/store/4s6r75mcacdz558q4gmljmp2rnaslrbc-python3.7-pytest-5.3.2.drv': ['out'], '/nix/store/4x37zin4b8p4lki0lcb2540n3n06hhbb-python3-3.7.6.drv': ['out'], '/nix/store/56n4gipsrh1r1im9d6zr9alj6hz4pwlq-setuptools-check-hook.drv': ['out'], '/nix/store/59akg6izg3mf766p0jdcnsb7zlbn65cd-python-imports-check-hook.sh.drv': ['out'], '/nix/store/5rr6xi9by1i8z1yqbdbh0h3s5w6hf8am-numpy-1.17.4.zip.drv': ['out'], '/nix/store/895pw3mjn4hsy71fz3kxjwp51b8c49iz-openblas-0.3.7.drv': ['out'], '/nix/store/9276cl0klvbqlpsfk4nrfq2136z242cc-gfortran-wrapper-9.2.0.drv': ['out'], '/nix/store/c5v4cv3aabvfzr6j242cfa29zki7a18n-bash-4.4-p23.drv': ['out'], '/nix/store/c822256zapp64sa3i6r612w5nbx06d2g-python-remove-bin-bytecode-hook.drv': ['out'], '/nix/store/ccg0pvjynhkx39k4lrycrc8kwad2p8fi-hook.drv': ['out'], '/nix/store/ia8ri60fvjzqlxs8fjxcfyrz3p04xzw1-stdenv-linux.drv': ['out'], '/nix/store/k9aq1r6535smnjcbas0ii47vssxccy5l-setuptools-setup-hook.drv': ['out'], '/nix/store/ksxq3yhxpk6icjkx3sb3r4h47qmyyklx-hook.drv': ['out'], '/nix/store/s5sr6393pijrab7vsihg8sjv1bbng609-site.cfg.drv': ['out'], '/nix/store/wmnzx9afh9mkrw5vi5inlpqwpk6lbh69-python-catch-conflicts-hook.drv': ['out']}, 'platform': 'x86_64-linux', 'builder': '/nix/store/j78ycszn9vgn0khl0lcpbd087x2mmr66-bash-4.4-p23/bin/bash', 'args': ['-e', '/nix/store/9krlzvny65gdc8s7kpb6lkx8cd02c25b-default-builder.sh'], 'env': {'LANG': 'C.UTF-8', 'NOSE_EXCLUDE': 'test_large_file_support', 'buildInputs': '/nix/store/g888f4vxvca6x1r31zi0b500gy07xc33-openblas-0.3.7', 'builder': '/nix/store/j78ycszn9vgn0khl0lcpbd087x2mmr66-bash-4.4-p23/bin/bash', 'configureFlags': '', 'depsBuildBuild': '', 'depsBuildBuildPropagated': '', 'depsBuildTarget': '', 'depsBuildTargetPropagated': '', 'depsHostHost': '', 'depsHostHostPropagated': '', 'depsTargetTarget': '', 'depsTargetTargetPropagated': '', 'disallowedReferences': '', 'doCheck': '', 'doInstallCheck': '1', 'enableParallelBuilding': '1', 'enableParallelChecking': '1', 'installCheckPhase': 'runHook preCheck\npushd dist\n/nix/store/ga9kam5sgryz01frprfiy0b0kblmy1wi-python3-3.7.6/bin/python3.7 -c \'import numpy; numpy.test("fast", verbose=10)\'\npopd\nrunHook postCheck\n', 'name': 'python3.7-numpy-1.17.4', 'nativeBuildInputs': '/nix/store/ga9kam5sgryz01frprfiy0b0kblmy1wi-python3-3.7.6 /nix/store/sp48s56cvizhna8lay5ifs167qbn7f56-hook /nix/store/4lkln3qv170vvyg6dj02il8rmqyqlwx5-hook /nix/store/c1jpxpchpc44p5n0cw459pdbq3dsa1l8-python3.7-setuptools-42.0.2 /nix/store/i9127x0avimvh0zwwlqv4yr7qpd3dj1q-python-catch-conflicts-hook /nix/store/ii3dd61l7c1cd4zaqnv0x7mrp3rr9pck-python-remove-bin-bytecode-hook /nix/store/xg124d9dm4cw74d9chkddagp3p8yixaw-unzip-6.0 /nix/store/kpgfby02fdzz57zzqjp7rh8m9fmdzg1k-setuptools-setup-hook /nix/store/63wbrfznh6hq93n80l5rbckz3r6rg63r-pip-install-hook /nix/store/1qf4y9vmflyrk0bjjm1w6brak92q1hnh-python-imports-check-hook.sh /nix/store/3pqr5b301j4yvrh16l7w22yxrackbz1w-gfortran-wrapper-9.2.0 /nix/store/bxc2k3ac1c1kpwdmh60l2ljmzp5z5kr3-python3.7-pytest-5.3.2 /nix/store/ajjrq9zxxcdcmj5bgyzd8rf9k9l5frpd-setuptools-check-hook', 'out': '/nix/store/lzchyci4b2ng910i6jmkjsk84rq62w87-python3.7-numpy-1.17.4', 'outputs': 'out', 'patches': '', 'pname': 'numpy', 'postFixup': 'wrapPythonPrograms\n', 'preBuild': 'ln -s /nix/store/1ywkk1ywn27aj5c4cc7wv169xbgfriji-site.cfg site.cfg\n', 'preConfigure': "sed -i 's/-faltivec//' numpy/distutils/system_info.py\nexport NPY_NUM_BUILD_JOBS=$NIX_BUILD_CORES\n", 'propagatedBuildInputs': '/nix/store/ga9kam5sgryz01frprfiy0b0kblmy1wi-python3-3.7.6', 'propagatedNativeBuildInputs': '', 'src': '/nix/store/s0xm5qw11llk9cmfba1zfi35s28y9sqw-numpy-1.17.4.zip', 'stdenv': '/nix/store/0q6r7x7v41w392zzp03yddzdaps9083h-stdenv-linux', 'strictDeps': '1', 'system': 'x86_64-linux', 'version': '1.17.4'}}}
+
+
+#+begin_src shell :results output
+  nix show-derivation nixpkgs.python37Packages.numpy
+#+end_src
+
+#+RESULTS:
+#+begin_example
+{
+  "/nix/store/30wfhdxy1nwry6mk64i71i8bwd5gvspi-python3.7-numpy-1.17.3.drv": {
+    "outputs": {
+      "out": {
+        "path": "/nix/store/x4xgjqhpsgck4qqk9h0gyja4z2z1jm50-python3.7-numpy-1.17.3"
+      }
+    },
+    "inputSrcs": [
+      "/nix/store/9krlzvny65gdc8s7kpb6lkx8cd02c25b-default-builder.sh"
+    ],
+    "inputDrvs": {
+      "/nix/store/4mf2cwbfcwmlqbjk5w3nbjhfqi02jkwp-python-remove-bin-bytecode-hook.drv": [
+        "out"
+      ],
+      "/nix/store/5k90485marb7kdwhg03h8a59kyks5c2v-python3.7-setuptools-41.4.0.drv": [
+        "out"
+      ],
+      "/nix/store/7gxhhjpw3irlq6rhnn5k5dmw3ksp7ygf-python-catch-conflicts-hook.drv": [
+        "out"
+      ],
+      "/nix/store/7iaqpi8qy3a8rqha00ryzql3wzcxp8r0-numpy-1.17.3.zip.drv": [
+        "out"
+      ],
+      "/nix/store/cj532wc1agdgapdmpp7ym6hwgrrlfbiw-gfortran-wrapper-8.3.0.drv": [
+        "out"
+      ],
+      "/nix/store/dk2a4lzx4q8kp5vyhhr9ynyl62lnpvzi-hook.drv": [
+        "out"
+      ],
+      "/nix/store/dqngsgjpzsr280xscr1iqvrsxlrp8q6x-pip-install-hook.drv": [
+        "out"
+      ],
+      "/nix/store/g06lcsnffbn2pqr9jlyrd3jr05ysvzqp-stdenv-linux.drv": [
+        "out"
+      ],
+      "/nix/store/jj1piqrcvb16ss22pzr7hy89lyiiwkc7-python-imports-check-hook.sh.drv": [
+        "out"
+      ],
+      "/nix/store/jvnszfcn7mbhslvz0vca06nz66dj5g0v-unzip-6.0.drv": [
+        "out"
+      ],
+      "/nix/store/nn8gylhzg8ba3i1i94kdlirayj7jqfhm-bash-4.4-p23.drv": [
+        "out"
+      ],
+      "/nix/store/nwr71xbhc44v48k86bfr9aadvb243lqh-setuptools-check-hook.drv": [
+        "out"
+      ],
+      "/nix/store/r18w4q63ffh9yvnd09w3lclyr2ngyvw7-python3-3.7.5.drv": [
+        "out"
+      ],
+      "/nix/store/v1ia9aps3p0xlv2dlk89fb9n9zyq02sb-setuptools-setup-hook.drv": [
+        "out"
+      ],
+      "/nix/store/vfl7nl87sn8q6l9pqliwp3djsrw18vwh-openblas-0.3.7.drv": [
+        "out"
+      ],
+      "/nix/store/wy3zz1286wlkykgncr8jbyd2y4li240m-site.cfg.drv": [
+        "out"
+      ],
+      "/nix/store/yhi246izkijh9d09d7hdsg3s5vx2ja66-python3.7-pytest-5.2.1.drv": [
+        "out"
+      ],
+      "/nix/store/zxp094fy840bhadivqw0gf8w3r4cjlrc-hook.drv": [
+        "out"
+      ]
+    },
+    "platform": "x86_64-linux",
+    "builder": "/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23/bin/bash",
+    "args": [
+      "-e",
+      "/nix/store/9krlzvny65gdc8s7kpb6lkx8cd02c25b-default-builder.sh"
+    ],
+    "env": {
+      "LANG": "C.UTF-8",
+      "NOSE_EXCLUDE": "test_large_file_support",
+      "buildInputs": "/nix/store/47g3l1bawiln8sz65mjal8hshb0m4g1j-openblas-0.3.7",
+      "builder": "/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23/bin/bash",
+      "configureFlags": "",
+      "depsBuildBuild": "",
+      "depsBuildBuildPropagated": "",
+      "depsBuildTarget": "",
+      "depsBuildTargetPropagated": "",
+      "depsHostHost": "",
+      "depsHostHostPropagated": "",
+      "depsTargetTarget": "",
+      "depsTargetTargetPropagated": "",
+      "disallowedReferences": "",
+      "doCheck": "",
+      "doInstallCheck": "1",
+      "enableParallelBuilding": "1",
+      "enableParallelChecking": "1",
+      "installCheckPhase": "runHook preCheck\npushd dist\n/nix/store/gpnm7i19lpj8p43mjrdw03d0hjalmskl-python3-3.7.5/bin/python3.7 -c 'import numpy; numpy.test(\"fast\", verbose=10)'\npopd\nrunHook postCheck\n",
+      "name": "python3.7-numpy-1.17.3",
+      "nativeBuildInputs": "/nix/store/gpnm7i19lpj8p43mjrdw03d0hjalmskl-python3-3.7.5 /nix/store/dlqrjn3gjh155ss0as9vklk81m7q3a86-hook /nix/store/94ch97m4n4xadk8g21aay254nd66px8x-hook /nix/store/5088myssxnqwx0v0zi077cig4mxcdlz2-python3.7-setuptools-41.4.0 /nix/store/gb9qj8nhbaw91vzgz2h3awx7zpjccx10-python-catch-conflicts-hook /nix/store/3vc6ffxgjjmcnji3bf9zw10i14sb9ig5-python-remove-bin-bytecode-hook /nix/store/jfkmr4cs0368qimvhkdbwy09wckasdf4-unzip-6.0 /nix/store/shcqn3yki0pfkkmpq5s9rcr9z5r8nk59-setuptools-setup-hook /nix/store/p0x24l3kq8idqdxfh846n2jn6n1s30vw-pip-install-hook /nix/store/ppmw6mmq9756h48zm14hg4nf5s3436cx-python-imports-check-hook.sh /nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0 /nix/store/ca5448q3vnkmqn01k2mkchqim11bay1v-python3.7-pytest-5.2.1 /nix/store/vlcn0mpfxq9ic7pxpngyfxkamfyna36n-setuptools-check-hook",
+      "out": "/nix/store/x4xgjqhpsgck4qqk9h0gyja4z2z1jm50-python3.7-numpy-1.17.3",
+      "outputs": "out",
+      "patches": "",
+      "pname": "numpy",
+      "postFixup": "wrapPythonPrograms\n",
+      "preBuild": "ln -s /nix/store/sagxi6lh5r415mqy47ns6swivjqqmlnl-site.cfg site.cfg\n",
+      "preConfigure": "sed -i 's/-faltivec//' numpy/distutils/system_info.py\nexport NPY_NUM_BUILD_JOBS=$NIX_BUILD_CORES\n",
+      "propagatedBuildInputs": "/nix/store/gpnm7i19lpj8p43mjrdw03d0hjalmskl-python3-3.7.5",
+      "propagatedNativeBuildInputs": "",
+      "src": "/nix/store/4zpdl7axcvgckxycdd1jdmbhndwkk0bi-numpy-1.17.3.zip",
+      "stdenv": "/nix/store/fiaj00zrmb7dynd2q9xmcrh5rn0mjwj0-stdenv-linux",
+      "strictDeps": "1",
+      "system": "x86_64-linux",
+      "version": "1.17.3"
+    }
+  }
+}
+#+end_example
+
+* nix commands
+
+To list all derivations and given nix store paths
+
+#+begin_src shell
+  nix-env -f ~/p/nixpkgs -qa --out-path -A "python3Packages" | tail
+#+end_src
+
+#+RESULTS:
+| rpm-4.14.2.1          | dev=/nix/store/gfv7kxqsshxx6pda306ygc4i02bfdl5x-rpm-4.14.2.1-dev;man=/nix/store/gzqyhqp8x644gl8jwcja6xhchx7c87id-rpm-4.14.2.1-man;/nix/store/dc0pq5khfnc7yqw6lkm8bx28xdy28fxv-rpm-4.14.2.1                                                        |
+| sequoia-0.11.0        | /nix/store/m9wqgkvyzh00rpcywxgyz2dxw17fq5pa-sequoia-0.11.0                                                                                                                                                                                        |
+| setuptools-check-hook | /nix/store/ajjrq9zxxcdcmj5bgyzd8rf9k9l5frpd-setuptools-check-hook                                                                                                                                                                                 |
+| setuptools-setup-hook | /nix/store/kpgfby02fdzz57zzqjp7rh8m9fmdzg1k-setuptools-setup-hook                                                                                                                                                                                 |
+| shiboken2-5.12.3      | /nix/store/3w3v6aplbps98pgp1viy7qs705arvjpc-shiboken2-5.12.3                                                                                                                                                                                      |
+| smugline-20160106     | /nix/store/kkf8q3hfqxk8v6a7f6i5xdqxvky0dnwl-smugline-20160106                                                                                                                                                                                     |
+| sybil-1.0.9           | /nix/store/my9llbs9a9wiand6bhxpd036nhcc6hnc-sybil-1.0.9                                                                                                                                                                                           |
+| syncthing-gtk-0.9.4   | /nix/store/9bqcpbfvwvi9zgy9gjsbw1ndw38i0dyq-syncthing-gtk-0.9.4                                                                                                                                                                                   |
+| wheel-unpack-hook.sh  | /nix/store/lw9bs1fsxm57qlyycgkcwsrkzq4ckz2k-wheel-unpack-hook.sh                                                                                                                                                                                  |
+| z3-4.8.7              | dev=/nix/store/ybvrxl04sa9g4s23kiz26rjwn5vlp5k1-z3-4.8.7-dev;lib=/nix/store/lafjyfsi39kw88pyz9jzzchlvyhpy1n7-z3-4.8.7-lib;/nix/store/7dvfnrxlscjq0cjbxlp563pv2mqpkhpx-z3-4.8.7;python=/nix/store/fzk03lfkbx5jzz1hkk38ya2bk8l26km9-z3-4.8.7-python |
+
+To build/download and print nix store path
+
+#+begin_src shell
+  nix-build '<nixpkgs>' --no-build-output -A python3Packages.Keras
+#+end_src
+
+#+RESULTS:
+: /nix/store/xyywyd9m81qsb3kgb8qq729iiyg8zcn2-python3.7-Keras-2.3.1
+
+#+NAME: visualize
+#+begin_src shell :results graphics :results file :var package="nixpkgs.openmpi"
+  nix build $package
+  nix-store -q --graph $(nix path-info $package) > /tmp/graph.dot
+  dot /tmp/graph.dot -Tpng > /tmp/$package.png
+  printf "/tmp/$package.png"
+#+end_src
+
+#+RESULTS: visualize
+[[file:/tmp/nixpkgs.openmpi.png]]
+
+
+#+begin_src shell :results output
+  cat /tmp/graph.dot
+#+end_src
+
+#+RESULTS:
+#+begin_example
+digraph G {
+"/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [label = "openmpi-4.0.2", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/37f8ccn3i45zg77nxh27k0j9a0w2h5xv-libnl-3.5.0" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "black"];
+"/nix/store/48cxxv62jcjinq0jdp2i9qfxkqbvgxnl-hwloc-2.1.0-lib" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "red"];
+"/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "green"];
+"/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "blue"];
+"/nix/store/cg9l4lrvfc9azjsdzgfaxkcbfsmyyzmg-zlib-1.2.11" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "magenta"];
+"/nix/store/ijszzsxwqil5dxr8dykqy3vha235vhy9-libevent-2.1.11" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "burlywood"];
+"/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "black"];
+"/nix/store/lcd70q7av5cz5jl4pgvyw20l9hqymdby-gfortran-8.3.0-lib" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "red"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "green"];
+"/nix/store/xfvdxgv2scpcbzswk8ibrywzdvgwqn5f-libnl-3.5.0-dev" -> "/nix/store/mg86j79pkap8jzz5zdzfmnsp98q8lzgl-openmpi-4.0.2" [color = "blue"];
+"/nix/store/37f8ccn3i45zg77nxh27k0j9a0w2h5xv-libnl-3.5.0" [label = "libnl-3.5.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/37f8ccn3i45zg77nxh27k0j9a0w2h5xv-libnl-3.5.0" [color = "magenta"];
+"/nix/store/48cxxv62jcjinq0jdp2i9qfxkqbvgxnl-hwloc-2.1.0-lib" [label = "hwloc-2.1.0-lib", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/48cxxv62jcjinq0jdp2i9qfxkqbvgxnl-hwloc-2.1.0-lib" [color = "burlywood"];
+"/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [label = "gcc-wrapper-8.3.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/1220kf6lvlswh677wvizp9p51c6rcp3x-gcc-8.3.0-lib" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "black"];
+"/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "red"];
+"/nix/store/617cp3vzbqbdm3ylpal1rl357pyv1dc2-expand-response-params" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "green"];
+"/nix/store/adg7sif4n4v679ibxqzjp59x15nplbnx-gnugrep-3.3" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "blue"];
+"/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "magenta"];
+"/nix/store/gnw6yrqy249n62r4q8vy12ispviv3dav-coreutils-8.31" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "burlywood"];
+"/nix/store/nrisqq65br52ys4w6nly7vkjb2j10yy4-gcc-8.3.0" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "black"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "red"];
+"/nix/store/vl9ajbvls3y09i823cd66gsk9wrp6mw0-glibc-2.27-bin" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "green"];
+"/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23" -> "/nix/store/65dk7wwwkn9cgim39k7p3823qdrqy8py-gcc-wrapper-8.3.0" [color = "blue"];
+"/nix/store/1220kf6lvlswh677wvizp9p51c6rcp3x-gcc-8.3.0-lib" [label = "gcc-8.3.0-lib", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/1220kf6lvlswh677wvizp9p51c6rcp3x-gcc-8.3.0-lib" [color = "magenta"];
+"/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" [label = "glibc-2.27-dev", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/fasbaxqn43vmzv58vb5z0rg90k4d2jli-linux-headers-4.19.16" -> "/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" [color = "burlywood"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" [color = "black"];
+"/nix/store/vl9ajbvls3y09i823cd66gsk9wrp6mw0-glibc-2.27-bin" -> "/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" [color = "red"];
+"/nix/store/617cp3vzbqbdm3ylpal1rl357pyv1dc2-expand-response-params" [label = "expand-response-params", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/617cp3vzbqbdm3ylpal1rl357pyv1dc2-expand-response-params" [color = "green"];
+"/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" [label = "rdma-core-26.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/37f8ccn3i45zg77nxh27k0j9a0w2h5xv-libnl-3.5.0" -> "/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" [color = "blue"];
+"/nix/store/6838l6w2nkcnyrf8ygs4m5d0kjqxz655-systemd-243-lib" -> "/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" [color = "magenta"];
+"/nix/store/7dmz9wg40b8wqn4h8wdpkya0aphi6lb2-iproute2-5.3.0" -> "/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" [color = "burlywood"];
+"/nix/store/f0wn4fhfrvw49d61lnxi4bypnzqfr1fv-ethtool-5.3" -> "/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" [color = "black"];
+"/nix/store/hg39p7zj92hkgg8haspdmm8pv602zwb8-perl-5.30.0" -> "/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" [color = "red"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" [color = "green"];
+"/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23" -> "/nix/store/8aqkjl709y9km4nfzfm49x650xyimfkd-rdma-core-26.0" [color = "blue"];
+"/nix/store/6838l6w2nkcnyrf8ygs4m5d0kjqxz655-systemd-243-lib" [label = "systemd-243-lib", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/0p4mj4f1v26j9dwh9fcdm4qshici135x-libgcrypt-1.8.5" -> "/nix/store/6838l6w2nkcnyrf8ygs4m5d0kjqxz655-systemd-243-lib" [color = "magenta"];
+"/nix/store/acckfpvz5x0bcbn98qfb7n36zaab7s20-lz4-1.9.1" -> "/nix/store/6838l6w2nkcnyrf8ygs4m5d0kjqxz655-systemd-243-lib" [color = "burlywood"];
+"/nix/store/pnrb2zqwbmp3njbcx0z38hnr1h06rjh7-xz-5.2.4" -> "/nix/store/6838l6w2nkcnyrf8ygs4m5d0kjqxz655-systemd-243-lib" [color = "black"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/6838l6w2nkcnyrf8ygs4m5d0kjqxz655-systemd-243-lib" [color = "red"];
+"/nix/store/va2c9pvmzh4rfv95hcaqa9d4lky42zs2-libcap-2.27-lib" -> "/nix/store/6838l6w2nkcnyrf8ygs4m5d0kjqxz655-systemd-243-lib" [color = "green"];
+"/nix/store/0p4mj4f1v26j9dwh9fcdm4qshici135x-libgcrypt-1.8.5" [label = "libgcrypt-1.8.5", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/9n6g04fkw627kyq16m1l2pivxdymjlv0-libgpg-error-1.36" -> "/nix/store/0p4mj4f1v26j9dwh9fcdm4qshici135x-libgcrypt-1.8.5" [color = "blue"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/0p4mj4f1v26j9dwh9fcdm4qshici135x-libgcrypt-1.8.5" [color = "magenta"];
+"/nix/store/7dmz9wg40b8wqn4h8wdpkya0aphi6lb2-iproute2-5.3.0" [label = "iproute2-5.3.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/4byi4pp77n0flngli99291izc2dj2802-iptables-1.8.3" -> "/nix/store/7dmz9wg40b8wqn4h8wdpkya0aphi6lb2-iproute2-5.3.0" [color = "burlywood"];
+"/nix/store/7p91vvp9cg89ziprqr9cqj9wp9b2h5vq-libelf-0.8.13" -> "/nix/store/7dmz9wg40b8wqn4h8wdpkya0aphi6lb2-iproute2-5.3.0" [color = "black"];
+"/nix/store/q43rh66diq494j706sll1aidh9g2zgj9-db-5.3.28" -> "/nix/store/7dmz9wg40b8wqn4h8wdpkya0aphi6lb2-iproute2-5.3.0" [color = "red"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/7dmz9wg40b8wqn4h8wdpkya0aphi6lb2-iproute2-5.3.0" [color = "green"];
+"/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23" -> "/nix/store/7dmz9wg40b8wqn4h8wdpkya0aphi6lb2-iproute2-5.3.0" [color = "blue"];
+"/nix/store/4byi4pp77n0flngli99291izc2dj2802-iptables-1.8.3" [label = "iptables-1.8.3", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/15m381msrbda1fcsvh8ldc16j08km26d-libpcap-1.9.1" -> "/nix/store/4byi4pp77n0flngli99291izc2dj2802-iptables-1.8.3" [color = "magenta"];
+"/nix/store/9hc92q9jm3zmfpsv3vy5d1fb4hq9xsg1-libnetfilter_conntrack-1.0.7" -> "/nix/store/4byi4pp77n0flngli99291izc2dj2802-iptables-1.8.3" [color = "burlywood"];
+"/nix/store/mp9vc8946cs9qgdr95b4ns3myy0qhazc-libnftnl-1.1.4" -> "/nix/store/4byi4pp77n0flngli99291izc2dj2802-iptables-1.8.3" [color = "black"];
+"/nix/store/p8p4sfzqrzap8f8wshsl0i7rrwwwn9pg-libnfnetlink-1.0.1" -> "/nix/store/4byi4pp77n0flngli99291izc2dj2802-iptables-1.8.3" [color = "red"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/4byi4pp77n0flngli99291izc2dj2802-iptables-1.8.3" [color = "green"];
+"/nix/store/sj3qa5i652x3hbbi336xmzlijjvp44zv-libmnl-1.0.4" -> "/nix/store/4byi4pp77n0flngli99291izc2dj2802-iptables-1.8.3" [color = "blue"];
+"/nix/store/15m381msrbda1fcsvh8ldc16j08km26d-libpcap-1.9.1" [label = "libpcap-1.9.1", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/15m381msrbda1fcsvh8ldc16j08km26d-libpcap-1.9.1" [color = "magenta"];
+"/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23" -> "/nix/store/15m381msrbda1fcsvh8ldc16j08km26d-libpcap-1.9.1" [color = "burlywood"];
+"/nix/store/7p91vvp9cg89ziprqr9cqj9wp9b2h5vq-libelf-0.8.13" [label = "libelf-0.8.13", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/7p91vvp9cg89ziprqr9cqj9wp9b2h5vq-libelf-0.8.13" [color = "black"];
+"/nix/store/9hc92q9jm3zmfpsv3vy5d1fb4hq9xsg1-libnetfilter_conntrack-1.0.7" [label = "libnetfilter_conntrack-1.0.7", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/p8p4sfzqrzap8f8wshsl0i7rrwwwn9pg-libnfnetlink-1.0.1" -> "/nix/store/9hc92q9jm3zmfpsv3vy5d1fb4hq9xsg1-libnetfilter_conntrack-1.0.7" [color = "red"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/9hc92q9jm3zmfpsv3vy5d1fb4hq9xsg1-libnetfilter_conntrack-1.0.7" [color = "green"];
+"/nix/store/sj3qa5i652x3hbbi336xmzlijjvp44zv-libmnl-1.0.4" -> "/nix/store/9hc92q9jm3zmfpsv3vy5d1fb4hq9xsg1-libnetfilter_conntrack-1.0.7" [color = "blue"];
+"/nix/store/9n6g04fkw627kyq16m1l2pivxdymjlv0-libgpg-error-1.36" [label = "libgpg-error-1.36", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/9n6g04fkw627kyq16m1l2pivxdymjlv0-libgpg-error-1.36" [color = "magenta"];
+"/nix/store/acckfpvz5x0bcbn98qfb7n36zaab7s20-lz4-1.9.1" [label = "lz4-1.9.1", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/acckfpvz5x0bcbn98qfb7n36zaab7s20-lz4-1.9.1" [color = "burlywood"];
+"/nix/store/adg7sif4n4v679ibxqzjp59x15nplbnx-gnugrep-3.3" [label = "gnugrep-3.3", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/5gbcfzy0sj5wynnghp7kc512j4f6k5ym-pcre-8.43" -> "/nix/store/adg7sif4n4v679ibxqzjp59x15nplbnx-gnugrep-3.3" [color = "black"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/adg7sif4n4v679ibxqzjp59x15nplbnx-gnugrep-3.3" [color = "red"];
+"/nix/store/5gbcfzy0sj5wynnghp7kc512j4f6k5ym-pcre-8.43" [label = "pcre-8.43", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/5gbcfzy0sj5wynnghp7kc512j4f6k5ym-pcre-8.43" [color = "green"];
+"/nix/store/cg9l4lrvfc9azjsdzgfaxkcbfsmyyzmg-zlib-1.2.11" [label = "zlib-1.2.11", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/cg9l4lrvfc9azjsdzgfaxkcbfsmyyzmg-zlib-1.2.11" [color = "blue"];
+"/nix/store/f0wn4fhfrvw49d61lnxi4bypnzqfr1fv-ethtool-5.3" [label = "ethtool-5.3", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/f0wn4fhfrvw49d61lnxi4bypnzqfr1fv-ethtool-5.3" [color = "magenta"];
+"/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" [label = "binutils-wrapper-2.31.1", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" -> "/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" [color = "burlywood"];
+"/nix/store/617cp3vzbqbdm3ylpal1rl357pyv1dc2-expand-response-params" -> "/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" [color = "black"];
+"/nix/store/gnw6yrqy249n62r4q8vy12ispviv3dav-coreutils-8.31" -> "/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" [color = "red"];
+"/nix/store/ngg9lxh4xpnwdidv9sc98dg83vypm78k-binutils-2.31.1" -> "/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" [color = "green"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" [color = "blue"];
+"/nix/store/vl9ajbvls3y09i823cd66gsk9wrp6mw0-glibc-2.27-bin" -> "/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" [color = "magenta"];
+"/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23" -> "/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" [color = "burlywood"];
+"/nix/store/fasbaxqn43vmzv58vb5z0rg90k4d2jli-linux-headers-4.19.16" [label = "linux-headers-4.19.16", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/gnw6yrqy249n62r4q8vy12ispviv3dav-coreutils-8.31" [label = "coreutils-8.31", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/6mzar1vxnd4g6wiabgjwpdd9mzhqrgwz-acl-2.2.53" -> "/nix/store/gnw6yrqy249n62r4q8vy12ispviv3dav-coreutils-8.31" [color = "black"];
+"/nix/store/mizf8jq9w3wkb6fk94wya8vc4mnzn4n8-attr-2.4.48" -> "/nix/store/gnw6yrqy249n62r4q8vy12ispviv3dav-coreutils-8.31" [color = "red"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/gnw6yrqy249n62r4q8vy12ispviv3dav-coreutils-8.31" [color = "green"];
+"/nix/store/6mzar1vxnd4g6wiabgjwpdd9mzhqrgwz-acl-2.2.53" [label = "acl-2.2.53", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/mizf8jq9w3wkb6fk94wya8vc4mnzn4n8-attr-2.4.48" -> "/nix/store/6mzar1vxnd4g6wiabgjwpdd9mzhqrgwz-acl-2.2.53" [color = "blue"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/6mzar1vxnd4g6wiabgjwpdd9mzhqrgwz-acl-2.2.53" [color = "magenta"];
+"/nix/store/hg39p7zj92hkgg8haspdmm8pv602zwb8-perl-5.30.0" [label = "perl-5.30.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/gnw6yrqy249n62r4q8vy12ispviv3dav-coreutils-8.31" -> "/nix/store/hg39p7zj92hkgg8haspdmm8pv602zwb8-perl-5.30.0" [color = "burlywood"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/hg39p7zj92hkgg8haspdmm8pv602zwb8-perl-5.30.0" [color = "black"];
+"/nix/store/ijszzsxwqil5dxr8dykqy3vha235vhy9-libevent-2.1.11" [label = "libevent-2.1.11", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/ijszzsxwqil5dxr8dykqy3vha235vhy9-libevent-2.1.11" [color = "red"];
+"/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [label = "gfortran-wrapper-8.3.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "green"];
+"/nix/store/3fadh5372m45h4h7y6d47fmx8aqz1wcq-expand-response-params" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "blue"];
+"/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "magenta"];
+"/nix/store/adg7sif4n4v679ibxqzjp59x15nplbnx-gnugrep-3.3" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "burlywood"];
+"/nix/store/f4lph3r576pav307cr08fjdb51pawcm6-binutils-wrapper-2.31.1" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "black"];
+"/nix/store/gnw6yrqy249n62r4q8vy12ispviv3dav-coreutils-8.31" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "red"];
+"/nix/store/lcd70q7av5cz5jl4pgvyw20l9hqymdby-gfortran-8.3.0-lib" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "green"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "blue"];
+"/nix/store/vl9ajbvls3y09i823cd66gsk9wrp6mw0-glibc-2.27-bin" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "magenta"];
+"/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23" -> "/nix/store/j80n3kj039k7zb835da8i7cs20lg24zv-gfortran-wrapper-8.3.0" [color = "burlywood"];
+"/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [label = "gfortran-8.3.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/1fp2dwgv61f8hc76rrva11wlnv7q08rl-gmp-6.1.2" -> "/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [color = "black"];
+"/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" -> "/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [color = "red"];
+"/nix/store/94mihb9rijc0yw5y98263f5185sdqs15-mpfr-4.0.2" -> "/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [color = "green"];
+"/nix/store/cbxsbk38lsl04g3pik9hxn4m4lngnp3q-isl-0.17.1" -> "/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [color = "blue"];
+"/nix/store/cg9l4lrvfc9azjsdzgfaxkcbfsmyyzmg-zlib-1.2.11" -> "/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [color = "magenta"];
+"/nix/store/h88484hl6pr9x1il5g1isxnzr142x25j-libmpc-1.1.0" -> "/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [color = "burlywood"];
+"/nix/store/lcd70q7av5cz5jl4pgvyw20l9hqymdby-gfortran-8.3.0-lib" -> "/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [color = "black"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/2w9vvkj58cl6j6fcmlmqvmdyrs9qw1n4-gfortran-8.3.0" [color = "red"];
+"/nix/store/1fp2dwgv61f8hc76rrva11wlnv7q08rl-gmp-6.1.2" [label = "gmp-6.1.2", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/1220kf6lvlswh677wvizp9p51c6rcp3x-gcc-8.3.0-lib" -> "/nix/store/1fp2dwgv61f8hc76rrva11wlnv7q08rl-gmp-6.1.2" [color = "green"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/1fp2dwgv61f8hc76rrva11wlnv7q08rl-gmp-6.1.2" [color = "blue"];
+"/nix/store/3fadh5372m45h4h7y6d47fmx8aqz1wcq-expand-response-params" [label = "expand-response-params", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/3fadh5372m45h4h7y6d47fmx8aqz1wcq-expand-response-params" [color = "magenta"];
+"/nix/store/94mihb9rijc0yw5y98263f5185sdqs15-mpfr-4.0.2" [label = "mpfr-4.0.2", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/1fp2dwgv61f8hc76rrva11wlnv7q08rl-gmp-6.1.2" -> "/nix/store/94mihb9rijc0yw5y98263f5185sdqs15-mpfr-4.0.2" [color = "burlywood"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/94mihb9rijc0yw5y98263f5185sdqs15-mpfr-4.0.2" [color = "black"];
+"/nix/store/cbxsbk38lsl04g3pik9hxn4m4lngnp3q-isl-0.17.1" [label = "isl-0.17.1", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/1fp2dwgv61f8hc76rrva11wlnv7q08rl-gmp-6.1.2" -> "/nix/store/cbxsbk38lsl04g3pik9hxn4m4lngnp3q-isl-0.17.1" [color = "red"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/cbxsbk38lsl04g3pik9hxn4m4lngnp3q-isl-0.17.1" [color = "green"];
+"/nix/store/h88484hl6pr9x1il5g1isxnzr142x25j-libmpc-1.1.0" [label = "libmpc-1.1.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/1fp2dwgv61f8hc76rrva11wlnv7q08rl-gmp-6.1.2" -> "/nix/store/h88484hl6pr9x1il5g1isxnzr142x25j-libmpc-1.1.0" [color = "blue"];
+"/nix/store/94mihb9rijc0yw5y98263f5185sdqs15-mpfr-4.0.2" -> "/nix/store/h88484hl6pr9x1il5g1isxnzr142x25j-libmpc-1.1.0" [color = "magenta"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/h88484hl6pr9x1il5g1isxnzr142x25j-libmpc-1.1.0" [color = "burlywood"];
+"/nix/store/lcd70q7av5cz5jl4pgvyw20l9hqymdby-gfortran-8.3.0-lib" [label = "gfortran-8.3.0-lib", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/cg9l4lrvfc9azjsdzgfaxkcbfsmyyzmg-zlib-1.2.11" -> "/nix/store/lcd70q7av5cz5jl4pgvyw20l9hqymdby-gfortran-8.3.0-lib" [color = "black"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/lcd70q7av5cz5jl4pgvyw20l9hqymdby-gfortran-8.3.0-lib" [color = "red"];
+"/nix/store/mizf8jq9w3wkb6fk94wya8vc4mnzn4n8-attr-2.4.48" [label = "attr-2.4.48", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/mizf8jq9w3wkb6fk94wya8vc4mnzn4n8-attr-2.4.48" [color = "green"];
+"/nix/store/mp9vc8946cs9qgdr95b4ns3myy0qhazc-libnftnl-1.1.4" [label = "libnftnl-1.1.4", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/mp9vc8946cs9qgdr95b4ns3myy0qhazc-libnftnl-1.1.4" [color = "blue"];
+"/nix/store/sj3qa5i652x3hbbi336xmzlijjvp44zv-libmnl-1.0.4" -> "/nix/store/mp9vc8946cs9qgdr95b4ns3myy0qhazc-libnftnl-1.1.4" [color = "magenta"];
+"/nix/store/ngg9lxh4xpnwdidv9sc98dg83vypm78k-binutils-2.31.1" [label = "binutils-2.31.1", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/cg9l4lrvfc9azjsdzgfaxkcbfsmyyzmg-zlib-1.2.11" -> "/nix/store/ngg9lxh4xpnwdidv9sc98dg83vypm78k-binutils-2.31.1" [color = "burlywood"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/ngg9lxh4xpnwdidv9sc98dg83vypm78k-binutils-2.31.1" [color = "black"];
+"/nix/store/nrisqq65br52ys4w6nly7vkjb2j10yy4-gcc-8.3.0" [label = "gcc-8.3.0", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/1220kf6lvlswh677wvizp9p51c6rcp3x-gcc-8.3.0-lib" -> "/nix/store/nrisqq65br52ys4w6nly7vkjb2j10yy4-gcc-8.3.0" [color = "red"];
+"/nix/store/4a8wp97g0ddhjwx573k30x4fqzvkfn67-glibc-2.27-dev" -> "/nix/store/nrisqq65br52ys4w6nly7vkjb2j10yy4-gcc-8.3.0" [color = "green"];
+"/nix/store/cg9l4lrvfc9azjsdzgfaxkcbfsmyyzmg-zlib-1.2.11" -> "/nix/store/nrisqq65br52ys4w6nly7vkjb2j10yy4-gcc-8.3.0" [color = "blue"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/nrisqq65br52ys4w6nly7vkjb2j10yy4-gcc-8.3.0" [color = "magenta"];
+"/nix/store/p8p4sfzqrzap8f8wshsl0i7rrwwwn9pg-libnfnetlink-1.0.1" [label = "libnfnetlink-1.0.1", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/p8p4sfzqrzap8f8wshsl0i7rrwwwn9pg-libnfnetlink-1.0.1" [color = "burlywood"];
+"/nix/store/pnrb2zqwbmp3njbcx0z38hnr1h06rjh7-xz-5.2.4" [label = "xz-5.2.4", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/pnrb2zqwbmp3njbcx0z38hnr1h06rjh7-xz-5.2.4" [color = "black"];
+"/nix/store/q43rh66diq494j706sll1aidh9g2zgj9-db-5.3.28" [label = "db-5.3.28", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/1220kf6lvlswh677wvizp9p51c6rcp3x-gcc-8.3.0-lib" -> "/nix/store/q43rh66diq494j706sll1aidh9g2zgj9-db-5.3.28" [color = "red"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/q43rh66diq494j706sll1aidh9g2zgj9-db-5.3.28" [color = "green"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" [label = "glibc-2.27", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/sj3qa5i652x3hbbi336xmzlijjvp44zv-libmnl-1.0.4" [label = "libmnl-1.0.4", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/sj3qa5i652x3hbbi336xmzlijjvp44zv-libmnl-1.0.4" [color = "blue"];
+"/nix/store/va2c9pvmzh4rfv95hcaqa9d4lky42zs2-libcap-2.27-lib" [label = "libcap-2.27-lib", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/va2c9pvmzh4rfv95hcaqa9d4lky42zs2-libcap-2.27-lib" [color = "magenta"];
+"/nix/store/vl9ajbvls3y09i823cd66gsk9wrp6mw0-glibc-2.27-bin" [label = "glibc-2.27-bin", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/vl9ajbvls3y09i823cd66gsk9wrp6mw0-glibc-2.27-bin" [color = "burlywood"];
+"/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23" [label = "bash-4.4-p23", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23" [color = "black"];
+"/nix/store/xfvdxgv2scpcbzswk8ibrywzdvgwqn5f-libnl-3.5.0-dev" [label = "libnl-3.5.0-dev", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/37f8ccn3i45zg77nxh27k0j9a0w2h5xv-libnl-3.5.0" -> "/nix/store/xfvdxgv2scpcbzswk8ibrywzdvgwqn5f-libnl-3.5.0-dev" [color = "red"];
+"/nix/store/jjx9v5pssi0vh20f8jjzs1kgbq2aqgyp-libnl-3.5.0-bin" -> "/nix/store/xfvdxgv2scpcbzswk8ibrywzdvgwqn5f-libnl-3.5.0-dev" [color = "green"];
+"/nix/store/jjx9v5pssi0vh20f8jjzs1kgbq2aqgyp-libnl-3.5.0-bin" [label = "libnl-3.5.0-bin", shape = box, style = filled, fillcolor = "#ff0000"];
+"/nix/store/37f8ccn3i45zg77nxh27k0j9a0w2h5xv-libnl-3.5.0" -> "/nix/store/jjx9v5pssi0vh20f8jjzs1kgbq2aqgyp-libnl-3.5.0-bin" [color = "blue"];
+"/nix/store/qb6k4hp7gk331x9fydw0w7qj4dv09bwz-glibc-2.27" -> "/nix/store/jjx9v5pssi0vh20f8jjzs1kgbq2aqgyp-libnl-3.5.0-bin" [color = "magenta"];
+}
+#+end_example
+
+#+begin_src shell :results output
+  sha256sum /nix/store/3fandgaydm62k2yxf636swpmb9b5k1q0-hello-2.10.drv
+  cat /nix/store/3fandgaydm62k2yxf636swpmb9b5k1q0-hello-2.10.drv
+#+end_src
+
+#+RESULTS:
+: 166c1533509233ffec38a5a961353e996f2bd78744e6002add8b77797e1b3ab3  /nix/store/3fandgaydm62k2yxf636swpmb9b5k1q0-hello-2.10.drv
+: Derive([("out","/nix/store/n214akq42as1ckzj605c3s6y42cxby02-hello-2.10","","")],[("/nix/store/g06lcsnffbn2pqr9jlyrd3jr05ysvzqp-stdenv-linux.drv",["out"]),("/nix/store/i7bl3bw4xll9zsijhj619s3sj6ikra4k-hello-2.10.tar.gz.drv",["out"]),("/nix/store/nn8gylhzg8ba3i1i94kdlirayj7jqfhm-bash-4.4-p23.drv",["out"])],["/nix/store/9krlzvny65gdc8s7kpb6lkx8cd02c25b-default-builder.sh"],"x86_64-linux","/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23/bin/bash",["-e","/nix/store/9krlzvny65gdc8s7kpb6lkx8cd02c25b-default-builder.sh"],[("buildInputs",""),("builder","/nix/store/wd1jazzawjk4w1d31ism7fm7vdg4ma9l-bash-4.4-p23/bin/bash"),("configureFlags",""),("depsBuildBuild",""),("depsBuildBuildPropagated",""),("depsBuildTarget",""),("depsBuildTargetPropagated",""),("depsHostHost",""),("depsHostHostPropagated",""),("depsTargetTarget",""),("depsTargetTargetPropagated",""),("doCheck","1"),("doInstallCheck",""),("name","hello-2.10"),("nativeBuildInputs",""),("out","/nix/store/n214akq42as1ckzj605c3s6y42cxby02-hello-2.10"),("outputs","out"),("patches",""),("pname","hello"),("propagatedBuildInputs",""),("propagatedNativeBuildInputs",""),("src","/nix/store/3x7dwzq014bblazs7kq20p9hyzz0qh8g-hello-2.10.tar.gz"),("stdenv","/nix/store/fiaj00zrmb7dynd2q9xmcrh5rn0mjwj0-stdenv-linux"),("strictDeps",""),("system","x86_64-linux"),("version","2.10")])
+
+#+begin_src shell
+  cp -f /nix/store/3fandgaydm62k2yxf636swpmb9b5k1q0-hello-2.10.drv myout.drv
+  sed -i 's,/nix/store/n214akq42as1ckzj605c3s6y42cxby02-hello-2.10,,g' myout.drv
+  sha256sum myout.drv
+#+end_src
+
+#+RESULTS:
+: e5cde4164deba4b1a1c6ed0e7bb4235dc9a1bcd2591777fc2b6c128463288c85  myout.drv
+
+#+begin_src shell :var name="hello-2.10" :var hash="e5cde4164deba4b1a1c6ed0e7bb4235dc9a1bcd2591777fc2b6c128463288c85"
+  echo -n "output:out:sha256:$hash:/nix/store:$name" > myout.str
+  nix-hash --type sha256 --truncate --base32 --flat myout.str
+#+end_src
+
+#+RESULTS:
+: 0xn9yiiz5w8nc0hx1c3s666qijq8af2l
