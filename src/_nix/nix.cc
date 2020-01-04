@@ -3,6 +3,8 @@
 #include <config.h>
 #include <derivations.hh>
 #include <globals.hh>
+#include <profiles.hh>
+#include <store-api.hh>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -34,6 +36,7 @@ PYBIND11_MODULE(_nix, m) {
     )pbdoc";
 
     // =========== SETTINGS ============
+    // globals.hh
 
     m.def("settings", &getSettings);
 
@@ -46,6 +49,7 @@ PYBIND11_MODULE(_nix, m) {
       .def_readwrite("nix_conf_dir", &nix::Settings::nixConfDir);
 
     // ========== DERIVATIONS ==========
+    // derivations.hh
 
     m.def("readDerivation", py::overload_cast<const nix::Path &>(&nix::readDerivation));
 
@@ -73,6 +77,7 @@ PYBIND11_MODULE(_nix, m) {
     )pbdoc");
 
     // ============= HASH ==============
+    // hash.hh
 
     py::class_<nix::Hash>(m, "Hash")
       .def("to_string", &nix::Hash::to_string);
@@ -83,6 +88,22 @@ PYBIND11_MODULE(_nix, m) {
       .value("Base16", nix::Base::Base16)
       .value("SRI", nix::Base::SRI)
       .export_values();
+
+    // ========== PROFILES =============
+    // profiles.hh
+
+    m.def("findGenerations", &nix::findGenerations);
+
+    py::class_<nix::Generation>(m, "Generation")
+      .def_readonly("number", &nix::Generation::number)
+      .def_readonly("path", &nix::Generation::path)
+      .def_readonly("creationTime", &nix::Generation::creationTime);
+
+    // ========== STORE API ============
+    // store-api.hh
+
+    // py::class_<nix::Store>(m, "Store")
+    //   .def("is_in_store", &nix::Store::isInStore);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = VERSION_INFO;
