@@ -17,6 +17,11 @@ nix::Hash hashDerivation(nix::Derivation derivation) {
 }
 
 
+nix::Settings getSettings() {
+  return nix::settings;
+}
+
+
 PYBIND11_MODULE(_nix, m) {
     m.doc() = R"pbdoc(
         _nix plugin
@@ -27,6 +32,20 @@ PYBIND11_MODULE(_nix, m) {
            storePathToHash
            isDerivation
     )pbdoc";
+
+    // =========== SETTINGS ============
+
+    m.def("settings", &getSettings);
+
+    py::class_<nix::Settings>(m, "Settings")
+      .def_readwrite("nix_prefix", &nix::Settings::nixPrefix)
+      .def_readwrite("nix_store", &nix::Settings::nixStore)
+      .def_readwrite("nix_data_dir", &nix::Settings::nixDataDir)
+      .def_readwrite("nix_log_dir", &nix::Settings::nixLogDir)
+      .def_readwrite("nix_state_dir", &nix::Settings::nixStateDir)
+      .def_readwrite("nix_conf_dir", &nix::Settings::nixConfDir);
+
+    // ========== DERIVATIONS ==========
 
     m.def("readDerivation", py::overload_cast<const nix::Path &>(&nix::readDerivation));
 
@@ -52,6 +71,8 @@ PYBIND11_MODULE(_nix, m) {
     m.def("isDerivation", &nix::isDerivation, R"pbdoc(
        Determine whether filename is a derivation
     )pbdoc");
+
+    // ============= HASH ==============
 
     py::class_<nix::Hash>(m, "Hash")
       .def("to_string", &nix::Hash::to_string);
